@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  backend1:
+    build:
+      context: ./backend1
+    image: logyeapi
+    container_name: backend1
+    ports:
+      - "9060:8080"
+    networks:
+      - app-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  backend2:
+    build:
+      context: ./backend2
+    image: logyeui
+    container_name: backend2
+    ports:
+      - "9054:8080"
+    networks:
+      - app-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  frontend:
+    build:
+      context: ./frontend
+    image: logyereact
+    container_name: frontend
+    ports:
+      - "3000:80"
+    networks:
+      - app-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - /etc/letsencrypt:/etc/letsencrypt
+    depends_on:
+      - frontend
+      - backend1
+      - backend2
+    networks:
+      - app-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+networks:
+  app-network:
+    driver: bridge
